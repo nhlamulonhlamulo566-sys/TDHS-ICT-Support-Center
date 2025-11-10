@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "Avatar for Admin User",
+      "imageUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxJVCUyMHRlY2hub2xvZ3l8ZW58MHx8fHwxNzU5ODAwNTcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar for Alice Smith",
+      "imageUrl": "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxJVCUyMHRlY2hub2xvZ3l8ZW58MHx8fHwxNzU5ODAwNTcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar for Bob Johnson",
+      "imageUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxJVCUyMHRlY2hub2xvZ3l8ZW58MHx8fHwxNzU5ODAwNTcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    },
+    {
+      "id": "avatar-4",
+      "description": "Avatar for Charlie Brown",
+      "imageUrl": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxJVCUyMHRlY2hub2xvZ3l8ZW58MHx8fHwxNzU5ODAwNTcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    },
+    {
+      "id": "avatar-5",
+      "description": "Avatar for Diana Prince",
+      "imageUrl": "https://images.unsplash.com/photo-1573496774221-95285a08a463?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxJVCUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTk4MDA2MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    },
+    {
+      "id": "avatar-6",
+      "description": "Avatar for Ethan Hunt",
+      "imageUrl": "https://images.unsplash.com/photo-1542744095-291d1f67b221?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxJVCUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTk4MDA2MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ICT professional"
+    }
+  ]
+}

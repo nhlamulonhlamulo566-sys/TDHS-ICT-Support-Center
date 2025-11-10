@@ -1,0 +1,226 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the system.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Full name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user (e.g. Admin, Technician)."
+        },
+        "availability": {
+            "type": "string",
+            "description": "The user's availability status (e.g. Available, On Leave)."
+        },
+        "avatar": {
+            "type": "string",
+            "description": "The ID of the user's avatar image."
+        },
+        "persalNumber": {
+          "type": "string",
+          "description": "The user's personnel number."
+        },
+        "phoneNumber": {
+            "type": "string",
+            "description": "The user's contact phone number."
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "role",
+        "availability",
+        "avatar"
+      ]
+    },
+    "HelpDeskStaff": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HelpDeskStaff",
+      "type": "object",
+      "description": "Represents a help desk staff member.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HelpDeskStaff."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the help desk staff."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the help desk staff.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Technician": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Technician",
+      "type": "object",
+      "description": "Represents a technician.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Technician."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the technician."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the technician.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Supervisor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Supervisor",
+      "type": "object",
+      "description": "Represents a supervisor.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Supervisor."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the supervisor."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the supervisor.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Ticket": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ticket",
+      "type": "object",
+      "description": "Represents a help desk ticket.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Ticket."
+        },
+        "assignedToId": {
+          "type": "string",
+          "description": "Reference to Technician. (Relationship: Technician 1:N Ticket)."
+        },
+        "assignedById": {
+          "type": "string",
+          "description": "The user ID of the person who assigned the ticket."
+        },
+        "escalatedById": {
+          "type": "string",
+          "description": "The user ID of the person who escalated the ticket."
+        },
+        "escalatedToSupervisorId": {
+          "type": "string",
+          "description": "Reference to Supervisor. (Relationship: Supervisor 1:N Ticket). Nullable if not escalated."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the ticket."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the issue."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the ticket (e.g., Open, In Progress, Resolved, Closed)."
+        },
+        "severity": {
+          "type": "string",
+          "description": "The issue severity(e.g., Critical, High, Medium, Low)"
+        },
+        "dateOpened": {
+          "type": "string",
+          "description": "Date and time the ticket was opened.",
+          "format": "date-time"
+        },
+        "dateResolved": {
+          "type": "string",
+          "description": "Date and time the ticket was resolved. Nullable if not resolved.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "severity",
+        "dateOpened"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Collection of users."
+    },
+    "/helpDeskStaff/{helpDeskStaffId}": {
+      "schema": {
+        "$ref": "#/entities/HelpDeskStaff"
+      },
+      "description": "Collection of help desk staff members."
+    },
+    "/technicians/{technicianId}": {
+      "schema": {
+        "$ref": "#/entities/Technician"
+      },
+      "description": "Collection of technicians."
+    },
+    "/supervisors/{supervisorId}": {
+      "schema": {
+        "$ref": "#/entities/Supervisor"
+      },
+      "description": "Collection of supervisors."
+    },
+    "/tickets/{ticketId}": {
+      "schema": {
+        "$ref": "#/entities/Ticket"
+      },
+      "description": "Collection of tickets. Includes denormalized 'assignedToTechnicianId', and 'escalatedToSupervisorId' for authorization independence."
+    }
+  }
+}
