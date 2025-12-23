@@ -23,7 +23,12 @@ import {
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { UserRole } from "@/lib/types";
 
-const menuItems = {
+type MenuItem = {
+  href: string;
+  label: string;
+  icon: any;
+};
+const menuItems: Record<string, MenuItem> = {
   overview: { href: "/overview", label: "Overview", icon: LayoutDashboard },
   helpDesk: { href: "/help-desk", label: "Help Desk", icon: Headset },
   technician: { href: "/technician", label: "Technician", icon: Wrench },
@@ -47,8 +52,8 @@ export function SidebarNav() {
     }
 
     const { role } = userProfile;
-    let roleItems = [];
-    let otherItems = [];
+    let roleItems: MenuItem[] = [];
+    let otherItems: MenuItem[] = [];
 
     switch (role) {
       case UserRole.Admin:
