@@ -50,7 +50,7 @@ export function AssignTechnicianDialog({ ticket, isOpen, onOpenChange }: AssignT
   const availableTechnicians = useMemo(() => {
     if (!users) return [];
     return users.filter(user => 
-      (user.role === UserRole.Technician || user.role === UserRole.Supervisor) &&
+      (user.role === UserRole.Technician) &&
       user.availability === 'Available'
     );
   }, [users]);

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -34,11 +33,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PlusCircle } from "lucide-react";
 import { UserRole } from "@/lib/types";
-import { useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { initializeApp, deleteApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { firebaseConfig } from "@/firebase/config";
+import { createUser } from "@/ai/flows/create-user-flow";
+
 
 const formSchema = z
   .object({
@@ -57,8 +53,8 @@ const formSchema = z
 
 export function AddUserDialog() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const firestore = useFirestore();
   
   const roles: UserRole[] = [UserRole.HelpDesk, UserRole.Technician, UserRole.Supervisor, UserRole.Admin];
 
@@ -76,83 +72,41 @@ export function AddUserDialog() {
   });
   
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-     if (!firestore) {
-        toast({
-            variant: "destructive",
-            title: "Firestore not available",
-            description: "Please try again later.",
+    setIsSubmitting(true);
+    
+    // Call the secure, server-side flow to create the user
+    const result = await createUser({
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      role: values.role,
+      persalNumber: values.persalNumber,
+      phoneNumber: values.phoneNumber,
+    });
+
+    if (result.success) {
+      toast({
+        title: "User Created Successfully",
+        description: result.message,
+      });
+      setIsOpen(false);
+      form.reset();
+    } else {
+      if (result.message.includes('already in use')) {
+         form.setError("email", {
+          type: "manual",
+          message: result.message,
         });
-        return;
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: result.message,
+        });
+      }
     }
 
-    // Create a temporary secondary Firebase app for user creation
-    const secondaryAppName = `admin-create-user-${Date.now()}`;
-    const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
-    const secondaryAuth = getAuth(secondaryApp);
-
-    createUserWithEmailAndPassword(
-      secondaryAuth,
-      values.email,
-      values.password
-    ).then(userCredential => {
-        const user = userCredential.user;
-        const userDocRef = doc(firestore, "users", user.uid);
-        
-        const userData = {
-            uid: user.uid,
-            id: user.uid,
-            name: values.name,
-            email: values.email,
-            persalNumber: values.persalNumber || "",
-            phoneNumber: values.phoneNumber || "",
-            role: values.role,
-            availability: 'Available', 
-            avatar: `avatar-${Math.ceil(Math.random() * 6)}`
-        };
-
-        return setDoc(userDocRef, userData, { merge: false })
-            .then(() => {
-                toast({
-                    title: "User created",
-                    description: `Account for ${values.name} has been successfully created.`,
-                });
-                setIsOpen(false);
-                form.reset();
-            }).catch(error => {
-                 // This catch is for the setDoc operation
-                const permissionError = new FirestorePermissionError({
-                    path: userDocRef.path,
-                    operation: 'create',
-                    requestResourceData: userData
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-    }).catch(error => {
-        // This catch is for the createUserWithEmailAndPassword operation
-        if (error.code === 'auth/email-already-in-use') {
-            form.setError("email", {
-                type: "manual",
-                message: "This email address is already in use.",
-            });
-        } else if (error.code === 'permission-denied') {
-             const permissionError = new FirestorePermissionError({
-                path: 'auth', // Path can be generalized for auth operations
-                operation: 'write',
-                requestResourceData: { email: values.email, action: 'createUser' }
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        }
-        else {
-            toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: error.message || "Could not create user.",
-            });
-        }
-    }).finally(() => {
-        // Clean up the secondary app
-        deleteApp(secondaryApp);
-    });
+    setIsSubmitting(false);
   };
 
   return (
@@ -281,8 +235,8 @@ export function AddUserDialog() {
             />
             <DialogFooter>
                <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Creating..." : "Create User"}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create User"}
               </Button>
             </DialogFooter>
           </form>

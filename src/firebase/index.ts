@@ -23,6 +23,8 @@ export function initializeFirebase() {
     firebaseApp = getApp();
   }
   auth = getAuth(firebaseApp);
+  
+  // Use getFirestore for a more robust initialization pattern
   firestore = getFirestore(firebaseApp);
 
   return { firebaseApp, auth, firestore };

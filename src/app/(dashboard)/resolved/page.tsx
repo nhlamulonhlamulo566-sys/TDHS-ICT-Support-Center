@@ -41,11 +41,13 @@ export default function ResolvedPage() {
         userTickets = allResolved;
     }
 
+    const sortedTickets = userTickets.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+
     if (!searchTerm) {
-      return userTickets;
+      return sortedTickets;
     }
 
-    return userTickets.filter(ticket => 
+    return sortedTickets.filter(ticket => 
         ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())

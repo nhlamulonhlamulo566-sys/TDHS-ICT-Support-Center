@@ -24,9 +24,10 @@ export default function SupervisorPage() {
   }, [firestore]);
 
   const usersCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Wait for userProfile to be loaded to ensure auth state is known
+    if (!firestore || !userProfile) return null;
     return collection(firestore, 'users');
-  }, [firestore]);
+  }, [firestore, userProfile]);
 
   const { data: tickets, isLoading: ticketsLoading } = useCollection<Ticket>(ticketsCollection);
   const { data: users, isLoading: usersLoading } = useCollection<User>(usersCollection);
@@ -56,11 +57,13 @@ export default function SupervisorPage() {
       );
     }
     
+    const sortedTickets = supervisorTickets.sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+
     if (!searchTerm) {
-      return supervisorTickets;
+      return sortedTickets;
     }
 
-    return supervisorTickets.filter(ticket => 
+    return sortedTickets.filter(ticket => 
         ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (ticket.ticketNumber && ticket.ticketNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
         ticket.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -68,16 +71,25 @@ export default function SupervisorPage() {
   }, [tickets, userProfile, users, searchTerm]);
   
   const handleDownload = () => {
-    if (!assignedTickets) return;
+    if (!assignedTickets || !users) return;
 
-    const formattedData = assignedTickets.map(ticket => ({
-      'Ticket Number': ticket.ticketNumber,
-      'Title': ticket.title,
-      'Status': ticket.status,
-      'Priority': ticket.priority || 'Not Set',
-      'Created At': ticket.createdAt?.toDate ? ticket.createdAt.toDate().toLocaleString() : 'N/A',
-      'Description': ticket.description,
-    }));
+    const formattedData = assignedTickets.map(ticket => {
+      const submitter = ticket.submittedBy;
+      return {
+        'Ticket Number': ticket.ticketNumber,
+        'Title': ticket.title,
+        'Status': ticket.status,
+        'Priority': ticket.priority || 'Not Set',
+        'Created At': ticket.createdAt?.toDate ? ticket.createdAt.toDate().toLocaleString() : 'N/A',
+        'Description': ticket.description,
+        'Submitter Persal Number': submitter?.persalNumber || 'N/A',
+        'Submitter First Name': submitter?.firstName || 'N/A',
+        'Submitter Last Name': submitter?.lastName || 'N/A',
+        'Submitter Cellphone': submitter?.cellphone || 'N/A',
+        'Submitter Location': submitter?.location || 'N/A',
+        'Facility Name': submitter?.facilityName || 'N/A',
+      };
+    });
 
     const csv = Papa.unparse(formattedData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

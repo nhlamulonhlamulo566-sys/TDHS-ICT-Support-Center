@@ -1,2 +1,4 @@
-// Flows will be imported for their side effects in this file.
-import './flows/diagnose-ticket-flow';
+'use server';
+// Genkit dependencies have been removed to fix an installation issue.
+// The flow imports below are commented out to prevent compilation errors.
+// import './flows/diagnose-ticket-flow';

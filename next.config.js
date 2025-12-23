@@ -1,6 +1,5 @@
 
-import type {NextConfig} from 'next';
-import withPWAInit from '@ducanh2912/next-pwa';
+const withPWAInit = require('@ducanh2912/next-pwa').default;
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -11,7 +10,8 @@ const withPWA = withPWAInit({
   aggressiveFrontEndNavCaching: true,
 });
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   /* config options here */
   images: {
     remotePatterns: [
@@ -31,4 +31,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default isProduction ? withPWA(nextConfig) : nextConfig;
+module.exports = isProduction ? withPWA(nextConfig) : nextConfig;

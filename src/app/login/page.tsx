@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, User } from "firebase/auth";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import type { User as UserProfile } from "@/lib/types";
 
 
 export default function LoginPage() {
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
@@ -29,11 +32,39 @@ export default function LoginPage() {
   }, [user, isUserLoading, router]);
 
   const handleSignIn = async () => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const loggedInUser = userCredential.user;
+
+      const userDocRef = doc(firestore, 'users', loggedInUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userProfile = userDocSnap.data() as UserProfile;
+        if (userProfile.disabled) {
+          await auth.signOut();
+          toast({
+            variant: "destructive",
+            title: "Account Disabled",
+            description: "Your account is disabled. Please contact an administrator for assistance.",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Update last login timestamp
+        await updateDoc(userDocRef, {
+          lastLoginAt: serverTimestamp()
+        });
+      }
+      
+      toast({
+        title: "Login Successful",
+        description: "Redirecting to your dashboard...",
+      });
       // Successful sign-in is handled by the onAuthStateChanged listener in the useUser hook
       // which will trigger the useEffect above to redirect.
     } catch (error: any) {
@@ -52,7 +83,10 @@ export default function LoginPage() {
         });
       }
     } finally {
-        setIsLoading(false);
+        // Only set loading to false on error, success is handled by redirect
+        if (auth.currentUser === null) {
+            setIsLoading(false);
+        }
     }
   };
 
@@ -88,6 +122,9 @@ export default function LoginPage() {
           <Button variant="link" className="w-full" asChild>
             <Link href="/">Back to Home</Link>
           </Button>
+           <p className="px-8 text-center text-xs text-muted-foreground mt-2">
+            Don't have an account? Please ask your administrator to create one for you.
+          </p>
         </CardFooter>
       </Card>
     </div>

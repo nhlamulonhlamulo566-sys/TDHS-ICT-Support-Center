@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -27,6 +28,14 @@ service cloud.firestore {
     // check userRole in an array of allowed roles
     function isOneOf(roles) {
       return userRole() in roles;
+    }
+    
+    // Checks if the only field being modified is the one specified.
+    // It compares the incoming data keys with the existing data keys to ensure only the allowed field is changing.
+    function isOnlyChanging(fieldName) {
+      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      // Allow if only the specified field is changed, or if it's changed alongside 'updatedAt' (common practice)
+      return changedKeys.hasOnly([fieldName]) || changedKeys.hasAll([fieldName, 'updatedAt']);
     }
 
     // ───────────────────────────────────────
@@ -87,8 +96,19 @@ service cloud.firestore {
       // Only admins can create user documents
       allow create: if isRole("Admin");
 
-      // Admin can update any user document. Users cannot update their own.
-      allow update: if isRole("Admin");
+      // Admin can update any user document.
+      // A user can update their own availability or last login timestamp, but nothing else.
+      allow update: if isRole("Admin") || 
+        (
+          isUser(userId) &&
+          (
+            // Rule for updating 'availability'
+            isOnlyChanging('availability')
+            ||
+            // Rule for updating 'lastLoginAt'
+            isOnlyChanging('lastLoginAt')
+          )
+        );
 
       // direct deletion disabled, must be done via disabling account
       allow delete: if false;

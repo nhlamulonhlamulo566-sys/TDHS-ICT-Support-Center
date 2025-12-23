@@ -18,9 +18,10 @@ export default function DashboardOverviewPage() {
   const firestore = useFirestore();
 
   const ticketsCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
+    // Only fetch tickets if firestore and the user profile are available.
+    if (!firestore || !userProfile) return null;
     return collection(firestore, 'tickets');
-  }, [firestore]);
+  }, [firestore, userProfile]);
 
   const { data: allTickets, isLoading: ticketsLoading } = useCollection<Ticket>(ticketsCollection);
 

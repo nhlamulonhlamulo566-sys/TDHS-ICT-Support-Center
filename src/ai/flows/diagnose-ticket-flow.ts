@@ -8,7 +8,6 @@
  * - DiagnoseTicketOutput - The return type for the diagnoseTicket function.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const DiagnoseTicketInputSchema = z.object({
@@ -22,34 +21,12 @@ const DiagnoseTicketOutputSchema = z.object({
 });
 export type DiagnoseTicketOutput = z.infer<typeof DiagnoseTicketOutputSchema>;
 
+
 export async function diagnoseTicket(input: DiagnoseTicketInput): Promise<DiagnoseTicketOutput> {
-  const diagnoseTicketFlow = ai.defineFlow(
-    {
-      name: 'diagnoseTicketFlow',
-      inputSchema: DiagnoseTicketInputSchema,
-      outputSchema: DiagnoseTicketOutputSchema,
-    },
-    async ({ description }) => {
-      const prompt = `You are an expert IT support technician with years of experience in a corporate environment.
-      A new ticket has come in. Your task is to analyze the user's description of the problem and provide a preliminary diagnosis and a set of actionable steps for a junior technician to follow.
-
-      Focus on common issues related to software, hardware, networking, and user accounts. Provide clear, concise, and practical advice.
-
-      Ticket Description:
-      "${description}"
-
-      Based on this description, provide your expert diagnosis and suggested troubleshooting steps.
-      `;
-      
-      const llmResponse = await ai.generate({
-        prompt: prompt,
-        output: {
-          schema: DiagnoseTicketOutputSchema,
-        },
-      });
-
-      return llmResponse.output!;
-    }
-  );
-  return diagnoseTicketFlow(input);
+  // Mocked response as Genkit dependencies have been removed.
+  console.log('AI diagnosis called with:', input.description);
+  return {
+    potentialDiagnosis: "AI Diagnosis is temporarily unavailable.",
+    suggestedSteps: ["Please proceed with standard manual troubleshooting.", "Genkit dependencies need to be reinstalled with compatible versions."],
+  };
 }

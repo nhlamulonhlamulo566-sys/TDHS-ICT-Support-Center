@@ -18,6 +18,7 @@ export interface User {
   persalNumber?: string;
   phoneNumber?: string;
   disabled?: boolean; // Add disabled flag
+  lastLoginAt?: any; // Firestore Timestamp
 }
 
 export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Escalated' | 'Closed';

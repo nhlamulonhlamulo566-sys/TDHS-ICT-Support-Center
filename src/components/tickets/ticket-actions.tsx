@@ -10,13 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Edit, CheckCircle, ArrowUpCircle, Trash2, UserPlus, WandSparkles } from "lucide-react"
+import { MoreHorizontal, CheckCircle, ArrowUpCircle, Trash2, UserPlus, WandSparkles, Info } from "lucide-react"
 import { Ticket, UserRole } from "@/lib/types"
 import { AssignTechnicianDialog } from "./assign-technician-dialog"
 import { ResolveTicketDialog } from "./resolve-ticket-dialog"
 import { EscalateTicketDialog } from "./escalate-ticket-dialog"
 import { DiagnoseTicketDialog } from "./diagnose-ticket-dialog"
 import { DeleteTicketDialog } from "./delete-ticket-dialog"
+import { ViewTicketDetailsDialog } from "./view-ticket-details-dialog"
 import { useState } from "react"
 import { useUserProfile } from "@/hooks/use-user-profile"
 
@@ -30,6 +31,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
   const [isEscalateDialogOpen, setIsEscalateDialogOpen] = useState(false);
   const [isDiagnoseDialogOpen, setIsDiagnoseDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
   const { userProfile } = useUserProfile();
 
   const isAdmin = userProfile?.role === UserRole.Admin;
@@ -43,6 +45,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
   const canResolve = !isUnassignedOpenTicket && (isTechnician || isSupervisor || isAdmin) && ticket.status !== 'Resolved' && ticket.status !== 'Closed';
   const canEscalate = !isUnassignedOpenTicket && (isTechnician || isSupervisor || isAdmin) && ticket.status !== 'Resolved' && ticket.status !== 'Closed';
   const canDiagnose = !isUnassignedOpenTicket && (isTechnician || isSupervisor || isAdmin) && ticket.status !== 'Resolved' && ticket.status !== 'Closed';
+  const canViewDetails = !isUnassignedOpenTicket && (isTechnician || isSupervisor || isAdmin);
   const canDelete = isAdmin;
 
   // If the ticket is unassigned, only show the assign action.
@@ -85,10 +88,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
     }
   }
 
-
-  // No actions available if none of the conditions are met, except for admin who can always delete.
-  const noActions = !canAssign && !canResolve && !canEscalate && !canDelete && !canDiagnose;
-
+  const noActions = !canAssign && !canResolve && !canEscalate && !canDelete && !canDiagnose && !canViewDetails;
 
   return (
     <>
@@ -101,23 +101,23 @@ export function TicketActions({ ticket }: TicketActionsProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        {canViewDetails && (
+           <DropdownMenuItem onSelect={() => setIsViewDetailsDialogOpen(true)}>
+            <Info className="mr-2 h-4 w-4" />
+            <span>View Details</span>
+          </DropdownMenuItem>
+        )}
         {canDiagnose && (
            <DropdownMenuItem onSelect={() => setIsDiagnoseDialogOpen(true)}>
             <WandSparkles className="mr-2 h-4 w-4" />
             <span>AI Diagnosis</span>
           </DropdownMenuItem>
         )}
-        {canAssign && (
-           <DropdownMenuItem onSelect={() => setIsAssignDialogOpen(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            <span>Assign Technician</span>
-          </DropdownMenuItem>
-        )}
-        {(canResolve || canEscalate) && <DropdownMenuSeparator />}
+        {(canViewDetails || canDiagnose) && <DropdownMenuSeparator />}
         {canResolve && (
           <DropdownMenuItem onSelect={() => setIsResolveDialogOpen(true)}>
             <CheckCircle className="mr-2 h-4 w-4" />
-            <span>Resolved</span>
+            <span>Resolve</span>
           </DropdownMenuItem>
         )}
         {canEscalate && (
@@ -127,7 +127,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
           </DropdownMenuItem>
         )}
         
-        {(canDelete && (canAssign || canResolve || canEscalate || canDiagnose)) && <DropdownMenuSeparator />}
+        {canDelete && (canResolve || canEscalate) && <DropdownMenuSeparator />}
         
         {canDelete && (
            <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive focus:bg-destructive/10">
@@ -144,6 +144,7 @@ export function TicketActions({ ticket }: TicketActionsProps) {
     {canEscalate && <EscalateTicketDialog ticket={ticket} isOpen={isEscalateDialogOpen} onOpenChange={setIsEscalateDialogOpen} />}
     {canDiagnose && <DiagnoseTicketDialog ticket={ticket} isOpen={isDiagnoseDialogOpen} onOpenChange={setIsDiagnoseDialogOpen} />}
     {canDelete && <DeleteTicketDialog ticket={ticket} isOpen={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} />}
+    {canViewDetails && <ViewTicketDetailsDialog ticket={ticket} isOpen={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen} />}
     </>
   )
 }

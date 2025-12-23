@@ -26,10 +26,10 @@ export default function HelpDeskPage() {
   const openTickets = useMemo(() => {
     if (!tickets) return [];
     
-    // Filter for tickets that are 'Open' and unassigned
-    const unassignedOpenTickets = tickets.filter(
-      (ticket) => ticket.status === 'Open' && !ticket.assignedToId
-    );
+    // Filter for tickets that are 'Open' and unassigned, then sort by creation date
+    const unassignedOpenTickets = tickets
+      .filter((ticket) => ticket.status === 'Open' && !ticket.assignedToId)
+      .sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
 
     if (!searchTerm) {
       return unassignedOpenTickets;
@@ -49,10 +49,25 @@ export default function HelpDeskPage() {
     return (
        <div>
         <PageHeader title="Help Desk - New Tickets" />
-        <div className="border rounded-lg p-4">
-          <Skeleton className="h-8 w-1/3 mb-4" />
-          <Skeleton className="h-4 w-full mb-2" />
-          <Skeleton className="h-10 w-full" />
+        <div className="border rounded-lg">
+            <div className="p-6">
+                <Skeleton className="h-8 w-1/3 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+            </div>
+            <div className="p-6 pt-0">
+                <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="flex items-center space-x-4 p-2">
+                            <Skeleton className="h-6 w-24 rounded-full" />
+                            <Skeleton className="h-5 w-20" />
+                            <div className="flex-1">
+                                <Skeleton className="h-5 w-3/4" />
+                            </div>
+                            <Skeleton className="h-8 w-24" />
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
       </div>
     )

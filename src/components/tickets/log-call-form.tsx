@@ -27,8 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, FirestorePermissionError, errorEmitter } from "@/firebase";
-import { collection, doc, runTransaction, Timestamp, query, where, getDocs } from "firebase/firestore";
+import { useAuth, useFirestore } from "@/firebase";
+import { collection, doc, runTransaction, Timestamp } from "firebase/firestore";
+import { signInAnonymously } from "firebase/auth";
 
 const formSchema = z.object({
   persalNumber: z.string().min(1, { message: "Persal Number is required." }),
@@ -52,12 +53,13 @@ export function LogCallForm({ setDialogOpen }: LogCallFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const auth = useAuth();
 
   const districts = [
     "TDHS",
     "Sub-District 1", 
     "Sub-District 2", 
-    "Sub-District 3", 
+    "Sub-District 3",
     "Sub-District 4", 
     "Sub-District 5", 
     "Sub-District 6", 
@@ -81,7 +83,7 @@ export function LogCallForm({ setDialogOpen }: LogCallFormProps) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!firestore) {
+    if (!firestore || !auth) {
       toast({
         variant: "destructive",
         title: "Database connection not found.",
@@ -97,31 +99,27 @@ export function LogCallForm({ setDialogOpen }: LogCallFormProps) {
     });
 
     try {
+      // Ensure we have an anonymous session for the transaction
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
       const { ticketNumber } = await runTransaction(firestore, async (transaction) => {
         const counterRef = doc(firestore, 'counters', 'tickets');
-        const counterDoc = await transaction.get(counterRef);
         
-        const newCount = (counterDoc.data()?.count || 0) + 1;
+        const counterDoc = await transaction.get(counterRef);
+        const currentCount = counterDoc.exists() ? (counterDoc.data()?.count || 0) : 0;
+        const newCount = currentCount + 1;
         const newTicketNumber = `TDHS-${newCount}`;
 
-        // Verify the ticket number doesn't already exist
-        const ticketsRef = collection(firestore, 'tickets');
-        const q = query(ticketsRef, where("ticketNumber", "==", newTicketNumber));
-        const snapshot = await getDocs(q); // Use getDocs outside transaction scope for read
-        if (!snapshot.empty) {
-          // If a ticket with this number exists, throw an error to abort the transaction
-          throw new Error("Duplicate ticket number generated. Please try again.");
-        }
+        transaction.set(counterRef, { count: newCount });
+        
+        const newTicketRef = doc(firestore, "tickets", newTicketNumber);
 
-        transaction.set(counterRef, { count: newCount }, { merge: true });
-
-        const ticketTitle = values.issueDescription.substring(0, 50) + (values.issueDescription.length > 50 ? '...' : '');
-        const newTicketRef = doc(collection(firestore, 'tickets'));
-
-        const ticketData = {
+        transaction.set(newTicketRef, {
           id: newTicketRef.id,
           ticketNumber: newTicketNumber,
-          title: ticketTitle,
+          title: values.issueDescription.substring(0, 50) + (values.issueDescription.length > 50 ? '...' : ''),
           description: values.issueDescription,
           status: 'Open',
           category: 'General',
@@ -139,39 +137,28 @@ export function LogCallForm({ setDialogOpen }: LogCallFormProps) {
             district: values.district,
             facilityName: values.facilityName,
           }
-        };
-        transaction.set(newTicketRef, ticketData);
+        });
         
         return { ticketNumber: newTicketNumber };
       });
-      
+
       toast({
-        title: "Ticket Logged Successfully",
-        description: `Your ticket number is ${ticketNumber}. A technician will be assigned shortly.`,
-        duration: 60000,
+          title: "Ticket Logged Successfully",
+          description: `Your ticket number is ${ticketNumber}. A technician will be assigned shortly.`,
+          duration: 60000,
       });
 
       setDialogOpen(false);
       form.reset();
 
     } catch (error: any) {
-      // Check if it's a permission error and create a contextual error
-        if (error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: 'transaction', // Path can be generalized for transactions
-                operation: 'write',
-                requestResourceData: 'Multiple documents in a transaction'
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-             toast({
-                variant: "destructive",
-                title: "Uh oh! Something went wrong.",
-                description: error.message || "Could not log your call. Please try again later.",
-            });
-        }
+        toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: error.message || "Could not log your call. Please try again later.",
+        });
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
   };
 
@@ -332,5 +319,3 @@ export function LogCallForm({ setDialogOpen }: LogCallFormProps) {
     </Form>
   );
 }
-
-    
