@@ -6,12 +6,11 @@
 
 import { z } from 'zod';
 import admin from 'firebase-admin';
+import { initializeFirebaseAdmin } from '@/firebase/admin-init';
 import { UserRole } from '@/lib/types';
 
-// Initialize Firebase Admin SDK if it hasn't been already.
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+// Initialize Firebase Admin SDK
+initializeFirebaseAdmin();
 
 const DisableUserInputSchema = z.object({
   uid: z.string().min(1, { message: "User ID is required." }),

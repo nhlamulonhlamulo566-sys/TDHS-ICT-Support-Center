@@ -5,17 +5,14 @@
  */
 
 import { z } from 'zod';
+import admin from 'firebase-admin';
 import { UserRole } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-// IMPORTANT: default import avoids Turbopack INTERNAL errors
-import admin from 'firebase-admin';
+import { initializeFirebaseAdmin } from '@/firebase/admin-init';
 import { getAuth } from 'firebase-admin/auth';
 
-// Initialize Firebase Admin SDK if it hasn't been already.
-// This relies on GOOGLE_APPLICATION_CREDENTIALS being set in the environment.
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
+// Initialize Firebase Admin SDK
+initializeFirebaseAdmin();
 
 const CreateUserInputSchema = z.object({
   name: z.string().min(2),
