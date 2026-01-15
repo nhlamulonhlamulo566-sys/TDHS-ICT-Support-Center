@@ -9,6 +9,24 @@ const withPWA = withPWAInit({
   disable: !isProduction,
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
+  workboxOptions: {
+    clientsClaim: true,
+    skipWaiting: true,
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'unsplash-images',
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+          },
+        },
+      },
+    ],
+  },
+  register: true,
 });
 
 const nextConfig: NextConfig = {
